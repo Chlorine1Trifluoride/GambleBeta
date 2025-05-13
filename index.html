@@ -66,7 +66,11 @@
       white-space: pre-wrap;
       max-height: 200px;
       overflow-y: auto;
-      font-size: 20px;
+      font-size: 16px;
+      background: #000;
+      border: 2px solid #0f0;
+      padding: 10px;
+      color: #0f0;
     }
     #resultScreen {
       background: #000;
@@ -76,14 +80,6 @@
       padding: 20px;
       border-top: 2px solid #0f0;
     }
-    #chartContainer {
-      position: relative;
-      height: 100%;
-    }
-    canvas#moneyChart {
-      width: 100% !important;
-      height: 100% !important;
-    }
   </style>
 </head>
 <body>
@@ -92,7 +88,7 @@
     <button class="tab-button" onclick="switchGame('oddEven')">홀짝</button>
     <button class="tab-button" onclick="switchGame('ladder')">사다리타기</button>
     <button class="tab-button" onclick="switchGame('slotMachine')">슬롯머신</button>
-    <button class="tab-button" onclick="switchGame('settings')">설정</button>
+    <button class="tab-button" id="settingsTab" onclick="switchGame('settings')">설정</button>
   </div>
 
   <div class="main-content">
@@ -109,8 +105,11 @@
         <button onclick="playLadder(3)">선택지 3</button>
         <button onclick="playLadder(4)">선택지 4</button>
       </div>
+      <div id="settingsOptions" class="hidden">
+        <input type="text" id="settingsTabTitle" placeholder="설정 탭 제목 변경" />
+        <button onclick="changeSettingsTitle()">제목 변경</button>
+      </div>
       <button id="gambleBtn" onclick="playGame()">베팅</button>
-      <div id="log"></div>
       <div id="gameOverScreen">
         <div id="finalMessage"></div>
         <div>📈 최대 보유 금액: <span id="maxMoney"></span> 만원</div>
@@ -118,11 +117,13 @@
     </div>
     <div class="right-panel">
       <div id="chartContainer">
-        <canvas id="moneyChart"></canvas>
+        <canvas id="moneyChart" width="400" height="300"></canvas>
       </div>
+      <div id="log"></div>
     </div>
   </div>
 
+  <!-- 결과 출력 화면 -->
   <div id="resultScreen">🎰 결과가 여기에 표시됩니다.</div>
 
   <script>
@@ -132,9 +133,9 @@
     let selectedOddEven = null;
 
     const moneyEl = document.getElementById('money');
+    const chartCtx = document.getElementById('moneyChart').getContext('2d');
     const resultScreen = document.getElementById('resultScreen');
-    let chartCtx;
-    let moneyChart;
+
     const chartData = {
       labels: ['Start'],
       datasets: [{
@@ -145,14 +146,15 @@
         tension: 0.3
       }],
     };
+    let moneyChart;
 
     window.addEventListener('load', () => {
-      chartCtx = document.getElementById('moneyChart').getContext('2d');
       moneyChart = new Chart(chartCtx, {
         type: 'line',
         data: chartData,
         options: {
           responsive: true,
+          resizeDelay: 300,
           maintainAspectRatio: false,
           scales: {
             y: {
@@ -171,6 +173,17 @@
       log(`게임 모드 변경: ${game}`);
       document.getElementById('oddEvenOptions').classList.toggle('hidden', game !== 'oddEven');
       document.getElementById('ladderOptions').classList.toggle('hidden', game !== 'ladder');
+      document.getElementById('settingsOptions').classList.toggle('hidden', game !== 'settings');
+    }
+
+    function changeSettingsTitle() {
+      const newTitle = document.getElementById('settingsTabTitle').value.trim();
+      if (newTitle) {
+        document.getElementById('settingsTab').textContent = newTitle;
+        log(`설정 탭 제목이 "${newTitle}"(으)로 변경됨.`);
+      } else {
+        log('제목을 입력하세요.');
+      }
     }
 
     function playGame() {
@@ -281,7 +294,7 @@
       moneyEl.textContent = money;
       chartData.labels.push('');
       chartData.datasets[0].data.push(money);
-      if (moneyChart) moneyChart.update();
+      moneyChart.update();
       log(result);
       if (money <= 0) showGameOver('💀 파산! 게임 종료.');
     }
@@ -298,5 +311,3 @@
   </script>
 </body>
 </html>
-
-
