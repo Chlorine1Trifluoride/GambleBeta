@@ -1,25 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Black Background, Green Text</title>
-    <style>
-        body {
-            background-color: black;
-            color: green;
-            font-family: 'Courier New', monospace;
-            font-size: 24px;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>INSANE GREEN TEXT</title>
+  <style>
+    body {
+      background-color: black;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      font-size: 16px;
+      margin: 0;
+      padding: 10px;
+      white-space: pre-wrap;
+      overflow-y: hidden;
+      height: 100vh;
+    }
+    #text-container {
+      height: 100%;
+      overflow: hidden;
+    }
+  </style>
 </head>
 <body>
-    <p>Th1s is a gr33n t3xt, @l1n3 w1th numb3rs & $ymb0ls!</p>
-    <p>R3m3mb3r t0 k33p h@v1ng fun, l3t's g0! #2025</p>
-    <p>100% C0d3 + Cr@z1n3ss = Fun!</p>
-    <p>G33n T3xt $t@rts h3r3: C0d3 is L1f3!!!</p>
+  <div id="text-container"></div>
+
+  <script>
+    const container = document.getElementById('text-container');
+
+    function getRandomChar() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[]{}|;:,.<>?';
+      return chars[Math.floor(Math.random() * chars.length)];
+    }
+
+    function generateLine(length = 80) {
+      let line = '';
+      for (let i = 0; i < length; i++) {
+        line += getRandomChar();
+      }
+      return line;
+    }
+
+    function appendLines(count = 5) {
+      for (let i = 0; i < count; i++) {
+        const line = document.createElement('div');
+        line.textContent = generateLine();
+        container.appendChild(line);
+      }
+
+      // 오래된 줄 제거 (성능 유지를 위해)
+      while (container.childElementCount > 300) {
+        container.removeChild(container.firstChild);
+      }
+
+      // 자동 스크롤
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    // 미친 속도: 매 5ms마다 5줄 생성
+    setInterval(() => appendLines(5), 5);
+  </script>
 </body>
 </html>
