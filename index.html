@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
@@ -124,12 +125,193 @@
   </div>
 
   <!-- 결과 출력 화면 -->
+
   <div id="resultScreen">🎰 결과가 여기에 표시됩니다.</div>
 
   <script>
-    // 모든 JavaScript 로직은 여기에 포함되어 있습니다.
-    // 파일 내용이 너무 길어 한 번에 모두 표시하기 어렵습니다.
-    // 필요하면 특정 부분만 요청하세요.
+    let money = 1000;
+    let maxMoney = 1000;
+    let currentGame = 'classic';
+    let selectedOddEven = null;
+
+    const moneyEl = document.getElementById('money');
+    const chartCtx = document.getElementById('moneyChart').getContext('2d');
+    const resultScreen = document.getElementById('resultScreen');
+
+    const chartData = {
+      labels: ['Start'],
+      datasets: [{
+        label: '보유 금액 추이',
+        data: [1000],
+        borderColor: '#0f0',
+        backgroundColor: 'transparent',
+        tension: 0.3
+      }],
+    };
+    let moneyChart;
+
+    window.addEventListener('load', () => {
+      moneyChart = new Chart(chartCtx, {
+        type: 'line',
+        data: chartData,
+        options: {
+          responsive: true,
+          resizeDelay: 300,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              min: 0
+            }
+          }
+        }
+      });
+    });
+
+    function switchGame(game) {
+      currentGame = game;
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`.tab-button[onclick="switchGame('${game}')"]`).classList.add('active');
+      log(`게임 모드 변경: ${game}`);
+      document.getElementById('oddEvenOptions').classList.toggle('hidden', game !== 'oddEven');
+      document.getElementById('ladderOptions').classList.toggle('hidden', game !== 'ladder');
+      document.getElementById('settingsOptions').classList.toggle('hidden', game !== 'settings');
+    }
+
+    function changeSettingsTitle() {
+      const newTitle = document.getElementById('settingsTabTitle').value.trim();
+      if (newTitle) {
+        document.getElementById('settingsTab').textContent = newTitle;
+        log(`설정 탭 제목이 "${newTitle}"(으)로 변경됨.`);
+      } else {
+        log('제목을 입력하세요.');
+      }
+    }
+
+    function playGame() {
+      const bet = Math.round(parseFloat(document.getElementById('bet').value));
+      if (isNaN(bet) || bet <= 0 || bet > money) {
+        log('올바른 베팅 금액을 입력하세요!');
+        return;
+      }
+
+      let result = '';
+      switch (currentGame) {
+        case 'classic': result = classicGame(bet); break;
+        case 'oddEven':
+          if (!selectedOddEven) return log('홀 또는 짝을 선택하세요!');
+          result = oddEvenGame(bet); break;
+        case 'ladder': result = ladderGame(bet); break;
+        case 'slotMachine': result = slotMachineGame(bet); break;
+        case 'settings': return log('설정을 변경하세요!');
+      }
+
+      updateGameState(result);
+    }
+
+    function classicGame(bet) {
+      const r = Math.random();
+      if (r < 0.5) {
+        money -= bet;
+        return `😢 실패! ${bet}만원 손실.`;
+      } else if (r < 0.9) {
+        const win = bet * 2;
+        money += win;
+        return `🎉 성공! ${win}만원 획득!`;
+      } else if (r < 0.97) {
+        const win = bet * 5;
+        money += win;
+        return `🎊 잭팟! ${win}만원 획득!`;
+      } else if (r < 0.99) {
+        const win = bet * 7;
+        money += win;
+        return `🚀 떡상! ${win}만원 획득!`;
+      } else {
+        const win = bet * 777;
+        money += win;
+        return `🪐 화성 갈끄니깐! ${win}만원 획득!`;
+      }
+    }
+
+    function setOddEven(choice) {
+      selectedOddEven = choice;
+      log(`선택: ${choice}`);
+    }
+
+    function oddEvenGame(bet) {
+      const randomOddEven = Math.random() < 0.5 ? '홀' : '짝';
+      if (selectedOddEven === randomOddEven) {
+        const win = bet * 2;
+        money += win;
+        return `🎉 ${randomOddEven}! ${win}만원 획득!`;
+      } else {
+        const loss = bet * 3;
+        money -= loss;
+        return `😢 ${randomOddEven}! ${loss}만원 손실.`;
+      }
+    }
+
+    function ladderGame(bet) {
+      const outcomes = ['성공', '실패', '떡상', '떡락'];
+      const outcome = outcomes[Math.floor(Math.random() * 4)];
+      if (outcome === '성공') {
+        const win = bet * 2;
+        money += win;
+        return `🎉 성공! ${win}만원 획득!`;
+      } else if (outcome === '실패') {
+        const loss = bet * 2;
+        money -= loss;
+        return `😢 실패! ${loss}만원 손실.`;
+      } else if (outcome === '떡상') {
+        const win = bet * 3;
+        money += win;
+        return `🚀 떡상! ${win}만원 획득!`;
+      } else {
+        const loss = bet * 3;
+        money -= loss;
+        return `📉 떡락! ${loss}만원 손실.`;
+      }
+    }
+
+    function slotMachineGame(bet) {
+      const slots = [1, 2, 3].map(() => Math.floor(Math.random() * 10));
+      const unique = new Set(slots).size;
+      if (unique === 1) {
+        const win = bet * 10;
+        money += win;
+        return `🎉 슬롯 ${slots.join('-')} | 10배 보상!`;
+      } else if (unique === 2) {
+        const win = bet * 5;
+        money += win;
+        return `🎉 슬롯 ${slots.join('-')} | 5배 보상!`;
+      } else {
+        money -= bet;
+        return `😢 슬롯 ${slots.join('-')} | 전액 손실`;
+      }
+    }
+
+    function updateGameState(result) {
+      resultScreen.textContent = result;
+      maxMoney = Math.max(maxMoney, money);
+      moneyEl.textContent = money;
+      chartData.labels.push('');
+      chartData.datasets[0].data.push(money);
+      moneyChart.update();
+      log(result);
+      if (money <= 0) showGameOver('💀 파산! 게임 종료.');
+    }
+
+    function log(msg) {
+      document.getElementById('log').insertAdjacentHTML('afterbegin', `${msg}<br>`);
+    }
+
+    function showGameOver(msg) {
+      document.getElementById('finalMessage').textContent = msg;
+      document.getElementById('maxMoney').textContent = maxMoney;
+      document.getElementById('gameOverScreen').style.display = 'block';
+    }
   </script>
+
 </body>
 </html>
+
