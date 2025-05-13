@@ -45,13 +45,16 @@
     .hidden {
       display: none;
     }
-    .left-panel, .right-panel {
+    .left-panel {
       padding: 20px;
       width: 50%;
     }
     .right-panel {
-      min-width: 400px;
-      min-height: 300px;
+      padding: 20px;
+      width: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     input, button {
       font-size: 18px;
@@ -61,17 +64,6 @@
       border: 2px solid #0f0;
       margin: 6px;
       width: 100%;
-    }
-    #log {
-      margin-top: 20px;
-      white-space: pre-wrap;
-      max-height: 200px;
-      overflow-y: auto;
-      font-size: 16px;
-      background: #000;
-      border: 2px solid #0f0;
-      padding: 10px;
-      color: #0f0;
     }
     #resultScreen {
       background: #000;
@@ -84,20 +76,25 @@
     }
     #gameOverScreen {
       position: absolute;
-      top: 0;
+      bottom: 0;
       left: 0;
       width: 100%;
-      height: 100%;
       background: rgba(0, 0, 0, 0.9);
       color: #f00;
       display: none;
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      font-size: 28px;
+      font-size: 24px;
+      padding: 20px;
+      border-top: 2px solid #f00;
     }
     #finalMessage {
       margin-bottom: 20px;
+    }
+    canvas {
+      max-width: 100%;
+      max-height: 100%;
     }
   </style>
 </head>
@@ -131,10 +128,7 @@
       <button id="gambleBtn" onclick="playGame()">베팅</button>
     </div>
     <div class="right-panel">
-      <div id="chartContainer">
-        <canvas id="moneyChart" width="400" height="300"></canvas>
-      </div>
-      <div id="log"></div>
+      <canvas id="moneyChart" width="400" height="300"></canvas>
     </div>
   </div>
 
@@ -199,16 +193,6 @@
       document.getElementById('settingsOptions').classList.toggle('hidden', game !== 'settings');
     }
 
-    function changeSettingsTitle() {
-      const newTitle = document.getElementById('settingsTabTitle').value.trim();
-      if (newTitle) {
-        document.getElementById('settingsTab').textContent = newTitle;
-        log(`설정 탭 제목이 "${newTitle}"(으)로 변경됨.`);
-      } else {
-        log('제목을 입력하세요.');
-      }
-    }
-
     function playGame() {
       const bet = Math.round(parseFloat(document.getElementById('bet').value));
       if (isNaN(bet) || bet <= 0 || bet > money) {
@@ -224,91 +208,9 @@
           result = oddEvenGame(bet); break;
         case 'ladder': result = ladderGame(bet); break;
         case 'slotMachine': result = slotMachineGame(bet); break;
-        case 'settings': return log('설정을 변경하세요!');
       }
 
       updateGameState(result);
-    }
-
-    function classicGame(bet) {
-      const r = Math.random();
-      if (r < 0.5) {
-        money -= bet;
-        return `😢 실패! ${bet}만원 손실.`;
-      } else if (r < 0.9) {
-        const win = bet * 2;
-        money += win;
-        return `🎉 성공! ${win}만원 획득!`;
-      } else if (r < 0.97) {
-        const win = bet * 5;
-        money += win;
-        return `🎊 잭팟! ${win}만원 획득!`;
-      } else if (r < 0.99) {
-        const win = bet * 7;
-        money += win;
-        return `🚀 떡상! ${win}만원 획득!`;
-      } else {
-        const win = bet * 777;
-        money += win;
-        return `🪐 화성 갈끄니깐! ${win}만원 획득!`;
-      }
-    }
-
-    function setOddEven(choice) {
-      selectedOddEven = choice;
-      log(`선택: ${choice}`);
-    }
-
-    function oddEvenGame(bet) {
-      const randomOddEven = Math.random() < 0.5 ? '홀' : '짝';
-      if (selectedOddEven === randomOddEven) {
-        const win = bet * 2;
-        money += win;
-        return `🎉 ${randomOddEven}! ${win}만원 획득!`;
-      } else {
-        const loss = bet * 3;
-        money -= loss;
-        return `😢 ${randomOddEven}! ${loss}만원 손실.`;
-      }
-    }
-
-    function ladderGame(bet) {
-      const outcomes = ['성공', '실패', '떡상', '떡락'];
-      const outcome = outcomes[Math.floor(Math.random() * 4)];
-      if (outcome === '성공') {
-        const win = bet * 2;
-        money += win;
-        return `🎉 성공! ${win}만원 획득!`;
-      } else if (outcome === '실패') {
-        const loss = bet * 2;
-        money -= loss;
-        return `😢 실패! ${loss}만원 손실.`;
-      } else if (outcome === '떡상') {
-        const win = bet * 3;
-        money += win;
-        return `🚀 떡상! ${win}만원 획득!`;
-      } else {
-        const loss = bet * 3;
-        money -= loss;
-        return `📉 떡락! ${loss}만원 손실.`;
-      }
-    }
-
-    function slotMachineGame(bet) {
-      const slots = [1, 2, 3].map(() => Math.floor(Math.random() * 10));
-      const unique = new Set(slots).size;
-      if (unique === 1) {
-        const win = bet * 10;
-        money += win;
-        return `🎉 슬롯 ${slots.join('-')} | 10배 보상!`;
-      } else if (unique === 2) {
-        const win = bet * 5;
-        money += win;
-        return `🎉 슬롯 ${slots.join('-')} | 5배 보상!`;
-      } else {
-        money -= bet;
-        return `😢 슬롯 ${slots.join('-')} | 전액 손실`;
-      }
     }
 
     function updateGameState(result) {
@@ -318,12 +220,7 @@
       chartData.labels.push('');
       chartData.datasets[0].data.push(money);
       moneyChart.update();
-      log(result);
       if (money <= 0) showGameOver('💀 파산! 게임 종료.');
-    }
-
-    function log(msg) {
-      document.getElementById('log').insertAdjacentHTML('afterbegin', `${msg}<br>`);
     }
 
     function showGameOver(msg) {
@@ -334,6 +231,10 @@
 
     function retry() {
       location.reload();
+    }
+
+    function log(msg) {
+      console.log(msg); // 콘솔에 로그 출력
     }
   </script>
 
