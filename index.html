@@ -48,6 +48,10 @@
       padding: 20px;
       width: 50%;
     }
+    .right-panel {
+      min-width: 400px;
+      min-height: 300px;
+    }
     input, button {
       font-size: 18px;
       padding: 10px 15px;
@@ -71,6 +75,14 @@
       text-align: center;
       padding: 20px;
       border-top: 2px solid #0f0;
+    }
+    #chartContainer {
+      position: relative;
+      height: 100%;
+    }
+    canvas#moneyChart {
+      width: 100% !important;
+      height: 100% !important;
     }
   </style>
 </head>
@@ -111,7 +123,6 @@
     </div>
   </div>
 
-  <!-- 결과 출력 화면 -->
   <div id="resultScreen">🎰 결과가 여기에 표시됩니다.</div>
 
   <script>
@@ -121,9 +132,9 @@
     let selectedOddEven = null;
 
     const moneyEl = document.getElementById('money');
-    const chartCtx = document.getElementById('moneyChart').getContext('2d');
     const resultScreen = document.getElementById('resultScreen');
-
+    let chartCtx;
+    let moneyChart;
     const chartData = {
       labels: ['Start'],
       datasets: [{
@@ -134,10 +145,23 @@
         tension: 0.3
       }],
     };
-    const moneyChart = new Chart(chartCtx, {
-      type: 'line',
-      data: chartData,
-      options: { scales: { y: { beginAtZero: true } } }
+
+    window.addEventListener('load', () => {
+      chartCtx = document.getElementById('moneyChart').getContext('2d');
+      moneyChart = new Chart(chartCtx, {
+        type: 'line',
+        data: chartData,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              min: 0
+            }
+          }
+        }
+      });
     });
 
     function switchGame(game) {
@@ -190,7 +214,7 @@
       } else {
         const win = bet * 777;
         money += win;
-        return `🪐 화성 간다! ${win}만원 획득!`;
+        return `🪐 화성 갈끄니깐! ${win}만원 획득!`;
       }
     }
 
@@ -252,12 +276,12 @@
     }
 
     function updateGameState(result) {
-      resultScreen.textContent = result;  // 결과 애니메이션 화면에 출력
+      resultScreen.textContent = result;
       maxMoney = Math.max(maxMoney, money);
       moneyEl.textContent = money;
       chartData.labels.push('');
       chartData.datasets[0].data.push(money);
-      moneyChart.update();
+      if (moneyChart) moneyChart.update();
       log(result);
       if (money <= 0) showGameOver('💀 파산! 게임 종료.');
     }
@@ -274,4 +298,5 @@
   </script>
 </body>
 </html>
+
 
